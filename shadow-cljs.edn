@@ -11,9 +11,7 @@
                              calva.fmt.inferer
                              calva.js-utils
                              calva.main]
-                 :output-dir "packages/calva_lib"
-                 :devtools {:before-load-async calva.main/stop
-                            :after-load calva.main/start}}
+                 :output-dir "packages/calva_lib"}
                 :test
                 {:target    :node-test
                  :output-to "test-out/tests.js"

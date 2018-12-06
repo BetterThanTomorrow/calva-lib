@@ -1,6 +1,6 @@
 {
-    "name": "@pez/calva-lib",
-    "version": "0.0.1",
+    "name": "@cospaia/calva-lib",
+    "version": "0.0.2",
     "description": "The Calva Common Library",
     "main": "calva.fmt.formatter.js",
     "keywords": [

@@ -2,21 +2,10 @@
     "name": "calva-lib",
     "displayName": "The Calva Library",
     "description": "A common library for the Calva Family of extensions",
-    "version": "0.0.1",
-    "keywords": [
-        "Clojure",
-        "ClojureScript",
-        "EDN",
-        "Formatting",
-        "Pretty"
-    ],
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/BetterThanTomorrow/calva-lib.git"
-    },
     "scripts": {
         "watch": "npx shadow-cljs watch :test :calva-lib",
         "release": "npx shadow-cljs release :calva-lib",
+        "publish": "npm run release && cd packages && npm publish --access public",
         "compile": "npx shadow-cljs compile :calva-lib",
         "test": "node ./node_modules/vscode/bin/test"
     },

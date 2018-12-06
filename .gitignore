@@ -1,0 +1,12 @@
+node_modules
+.vscode-test/
+*.vsix
+.shadow-cljs/
+.nrepl-port
+pom.xml
+*.idea/
+*.DS_Store
+out/
+lib/
+test-out/
+.vscode/settings.json

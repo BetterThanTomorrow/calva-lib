@@ -1,0 +1,21 @@
+{:dependencies [[pez/cljfmt "0.6.2-ALIGN"]
+                #_[zprint "0.4.11"]
+                [cider/cider-nrepl "0.19.0-SNAPSHOT"]]
+
+ :source-paths ["src" "test"]
+
+ :builds       {:calva-lib
+                {:target    :npm-module
+                 :runtime   :node
+                 :entries   [calva.fmt.formatter
+                             calva.fmt.inferer
+                             calva.js-utils
+                             calva.main]
+                 :output-dir "packages/calva_lib"
+                 :devtools {:before-load-async calva.main/stop
+                            :after-load calva.main/start}}
+                :test
+                {:target    :node-test
+                 :output-to "test-out/tests.js"
+                 :ns-regexp "-test$"
+                 :autorun   true}}}

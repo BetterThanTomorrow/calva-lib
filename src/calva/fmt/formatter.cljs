@@ -135,7 +135,7 @@
     (assoc m :new-index pos)))
 
 
-(defn format-text-at-range
+(defn ^:export format-text-at-range
   "Formats text from all-text at the range"
   [{:keys [all-text range idx config on-type] :as m}]
   (let [indent-before (indent-before-range m)
@@ -149,14 +149,14 @@
         (assoc :range-tail tail)
         (index-for-tail-in-range))))
 
-(comment 
- (format-text-at-range {:all-text "  '([]\n[])",
-                        :idx 7,
-                        :on-type true,
-                        :head "  '([]\n",
-                        :tail "[])",
-                        :current-line "[])",
-                        :range [4 9]}))
+(comment
+  (format-text-at-range {:all-text "  '([]\n[])"
+                         :idx 7
+                         :on-type true
+                         :head "  '([]\n"
+                         :tail "[])"
+                         :current-line "[])"
+                         :range [4 9]}))
 
 (defn format-text-at-range-old
   "Formats text from all-text at the range"
@@ -212,94 +212,5 @@
       (format-text-at-idx)))
 
 (comment
- (:range-text (format-text-at-idx-on-type {:all-text "  '([]\n[])" :idx 7})))
+  (:range-text (format-text-at-idx-on-type {:all-text "  '([]\n[])" :idx 7})))
 
-(defn ^:export infer-indents
-  "Calculate the edits needed for infering indents in `text`,
-   and where the cursor should be placed to 'stay' in the right place."
-  [^js m]
-  (let [{:keys [text line character previous-line previous-character changes]} (cljify m)
-        options {:cursorLine line :cursorX character
-                 :prevCursorLine previous-line
-                 :prevCursorX previous-character
-                 :changes (mapv (fn [change]
-                                  {:lineNo (:line change)
-                                   :x      (:character change)
-                                   :oldText (:old-text change)
-                                   :newText (:new-text change)})
-                                changes)}
-        result (cljify (parinfer/smartMode text (jsify options)))]
-    ;;(println (pr-str options))
-    (jsify
-     (if (:success result)
-       {:success true
-        :line (:cursorLine result)
-        :character (:cursorX result)
-        :edits (editor/raplacement-edits-for-diffing-lines text (:text result))}
-       {:success false
-        :error-msg (get-in result [:error :message])}))))
-
-
-
-(comment
-  (let [o (jsify {:cursorLine 1 :cursorX 4
-                  :changes {:lineNo 1 :x 0 :oldText "" :newText " "}})
-        result (parinfer/parenMode "  (defn a []\n     (foo []\n     (bar)\n     (baz)))" o)]
-    (cljify result))
-  
-  (let [o (jsify {:cursorLine 1
-                  :cursorX 3
-                  :prevCursorLine 1
-                  :prevCursorX 2
-                  :changes [{:lineNo 1
-                             :x 2
-                             :oldText ""
-                             :newText " "}]})
-        result (parinfer/parenMode "(comment\n   (foo bar\n     baz))" o)]
-    (cljify result))
-  
-  (let [o (jsify {:cursorLine 1
-                  :cursorX 0
-                  :prevCursorLine 0
-                  :prevCursorX 8
-                  :changes [{:lineNo 0
-                             :x 8
-                             :oldText ")"
-                             :newText "\n)"}]})
-        result (parinfer/smartMode "(--> foo\n)" o)]
-    (cljify result))
-  
-  (let [o (jsify {:cursorLine 1
-                  :cursorX 3
-                  :prevCursorLine 1
-                  :prevCursorX 2})
-        result (parinfer/parenMode "(comment\n    (foo bar\n    baz))" o)]
-    (cljify result))
-  
-  (infer-indents {:text "(comment \n   (foo bar \n     baz))"
-                  :line 1
-                  :character 3
-                  :previous-line 1
-                  :previous-character 2
-                  :changes [{:line 1
-                             :character 2
-                             :old-text ""
-                             :new-text " "}]})
-  
-  (infer-indents {:text "(comment\n\n   (foo bar \n     baz))"
-                  :line 1
-                  :character 0
-                  :previous-line 1
-                  :previous-character 0
-                  :changes [{:line 0
-                             :character 8
-                             :old-text "\n   (foo bar \n     baz))"
-                             :new-text "\n\n   (foo bar \n     baz))"}]})
-  
-  (infer-indents {:text "  (defn a []\n     (foo []\n     (bar)\n     (baz)))"
-                  :line 1
-                  :character 4
-                  :changes [{:line 4
-                             :character 0
-                             :old-text ""
-                             :new-text " "}]}))

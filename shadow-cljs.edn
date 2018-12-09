@@ -6,12 +6,11 @@
 
  :builds       {:calva-lib
                 {:target    :npm-module
-                 :runtime   :node
                  :entries   [calva.fmt.formatter
                              calva.fmt.inferer
                              calva.js-utils
                              calva.main]
-                 :output-dir "packages/calva_lib"}
+                 :output-dir "packages/lib"}
                 :test
                 {:target    :node-test
                  :output-to "test-out/tests.js"

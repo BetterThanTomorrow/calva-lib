@@ -143,3 +143,9 @@
        (baz)))"
                        (jsify {:cursorLine 2
                                :cursorX 13})))
+
+(comment
+  (cljfmt/reformat-string
+   "{:foo false
+    :bar false
+:baz #\"^[a-z]\"}"))

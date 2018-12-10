@@ -12,10 +12,8 @@
 (defn format-text
   [{:keys [range-text config] :as m}]
   (try
-    #_(assoc m :range-text (zprint-str range-text {:parse-string-all? true
-                                                   :style :community
-                                                   :fn-force-nl #{:arg1-body}}))
-    (assoc m :range-text (cljfmt/reformat-string range-text config))
+    (let [formatted-text (cljfmt/reformat-string range-text config)]
+      (assoc m :range-text formatted-text))
     (catch js/Error e
       (assoc m :error (.-message e)))))
 

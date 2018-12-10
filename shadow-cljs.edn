@@ -6,6 +6,7 @@
 
  :builds       {:calva-lib
                 {:target    :npm-module
+                 :runtime   :node
                  :entries   [calva.fmt.formatter
                              calva.fmt.inferer
                              calva.js-utils

@@ -5,7 +5,8 @@
             ["parinfer" :as parinfer]
             [calva.js-utils :refer [cljify jsify]]
             [calva.fmt.util :as util]
-            [calva.fmt.editor :as editor]))
+            [calva.fmt.editor :as editor]
+            [clojure.string]))
 
 
 (defn format-text

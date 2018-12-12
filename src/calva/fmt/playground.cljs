@@ -64,6 +64,10 @@
    baz))
 
 (comment
+  (cond)
+  (cljfmt/reformat-string "(cond foo\n)\n\n(cond foo\nbar)"
+                          {:remove-surrounding-whitespace? false})
+  
   (cljfmt/reformat-string "(-> foo\nbar\n)\n(foo bar\nbaz\n)"
                           {:remove-surrounding-whitespace? false
                            :remove-trailing-whitespace? false

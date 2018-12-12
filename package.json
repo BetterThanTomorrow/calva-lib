@@ -5,8 +5,9 @@
     "scripts": {
         "watch": "npx shadow-cljs watch :test :calva-lib",
         "release": "npx shadow-cljs release :calva-lib",
-        "publish": "npm run release && cd packages && npm publish --access public",
         "compile": "npx shadow-cljs compile :calva-lib",
+        "publish_now_working": "npm run release && cd packages && npm publish --access public",
+        "publish": "npm run compile && cd packages && npm publish --access public",
         "test": "node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {

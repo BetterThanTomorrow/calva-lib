@@ -1,7 +1,7 @@
 (ns calva.js-utils)
 
-(defn jsify [o]
+(defn ^:export jsify [o]
   (clj->js o))
 
-(defn cljify [o]
+(defn ^:export cljify [o]
   (js->clj o :keywordize-keys true))

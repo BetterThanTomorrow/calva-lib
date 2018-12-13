@@ -11,7 +11,8 @@
                              calva.fmt.inferer
                              calva.js-utils
                              calva.main]
-                 :output-dir "packages/lib"}
+                 :output-dir "packages/lib"
+                 :compiler-options {#_(:optimizations :simple)}} ;; :simple does not work, currently
                 :test
                 {:target    :node-test
                  :output-to "test-out/tests.js"

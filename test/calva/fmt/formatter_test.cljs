@@ -13,11 +13,6 @@
          (:range-text (sut/format-text-at-range {:all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]})))))
 
 
-(deftest format-text-at-range-old
-  (is (= "(foo)\n  (defn bar\n    [x]\n    baz)"
-         (:range-text (sut/format-text-at-range-old {:all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]})))))
-
-
 (def all-text "  (foo)
   (defn bar
          [x]

@@ -37,7 +37,7 @@
           (count)))))
 
 
-(defn enclosing-range
+(defn ^:export enclosing-range
   "Expands the range from `idx` up to any enclosing list/vector/map/string"
   [{:keys [all-text idx] :as m}]
   (assoc m :range
@@ -156,18 +156,6 @@
                          :tail "[])"
                          :current-line "[])"
                          :range [4 9]}))
-
-(defn format-text-at-range-old
-  "Formats text from all-text at the range"
-  [{:keys [all-text range idx config on-type] :as m}]
-  (let [range-text (subs all-text (first range) (last range))
-        range-index (- idx (first range))
-        tail (subs range-text range-index)
-        formatted-m (format-text (assoc m :range-text range-text))
-        normalized-m (normalize-indents formatted-m)]
-    (-> normalized-m
-        (assoc :range-tail tail)
-        (index-for-tail-in-range))))
 
 
 (defn add-indent-token-if-empty-current-line

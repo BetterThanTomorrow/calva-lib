@@ -3,7 +3,6 @@
             ["paredit.js" :as paredit]
             [calva.js-utils :refer [cljify jsify]]))
 
-
 (defn log
   "logs out the object `o` excluding any keywords in `exclude-kws`"
   [o & exlude-kws]

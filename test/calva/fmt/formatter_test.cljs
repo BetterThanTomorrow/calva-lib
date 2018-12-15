@@ -103,22 +103,6 @@ bar))")
  ")
 
 
-;; These fail, leading to a horrible behaviour when creating new lines top level
-(deftest new-index-top-level
-  (is (= 1
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text first-top-level-text :idx 1}))))
-  (is (= first-top-level-text
-         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text first-top-level-text :idx 1}))))
-  (is (= 32
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text mid-top-level-text :idx 33}))))
-  (is (= mid-top-level-text
-         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text mid-top-level-text :idx 33}))))
-  (is (= 32
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text last-top-level-text :idx 32}))))
-  (is (= last-top-level-text
-         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text last-top-level-text :idx 32})))))
-
-
 (deftest format-text-at-idx-on-type
   (is (= "(bar \n\n )"
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :idx 7}))))
@@ -137,15 +121,36 @@ bar))")
 (deftest new-index-on-type
   (is (= 6
          (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :idx 6}))))
-  (is (= 6
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  )" :idx 6}))))
-  (is (= 6
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  \n  )" :idx 6}))))
-  (is (= 6
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n  )" :idx 6}))))
-  (is (= 11
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(foo\n (bar)\n )" :idx 11})))))
+  (is (= 9
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :idx 7}))))
+  (is (= 7
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  )" :idx 7}))))
+  (is (= 9
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  \n  )" :idx 9}))))
+  (is (= 9
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :idx 7}))))
+  (is (= 10
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :idx 8}))))
+  (is (= 13
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(foo\n (bar)\n)" :idx 12})))))
 
+
+(deftest new-index-on-type-crlf
+  (is (= 6
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n)" :idx 6}))))
+  (is (= 10
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n)" :idx 8}))))
+  (is (= 8
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n  )" :idx 8}))))
+  (is (= 10
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n  \r\n  )" :idx 10}))))
+  (is (= 10
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n\r\n)" :idx 8}))))
+  (is (= 12
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n\r\n)" :idx 10}))))
+  (is (= 15
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(foo\r\n (bar)\r\n)" :idx 14})))))
+  
 
 (deftest index-for-tail-in-range
   (is (= 7

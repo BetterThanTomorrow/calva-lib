@@ -128,7 +128,7 @@
                          (clojure.string/replace #"^[ \t]+" "")
                          (clojure.string/replace #"\s+" "\\s*"))
         tail-pattern (if (and on-type (re-find #"^\r?\n" range-tail))
-                       (str "\n+" tail-pattern)
+                       (str "[\r\n]+" tail-pattern)
                        tail-pattern)
         pos (util/re-pos-first (str " {0," leading-space-length "}" tail-pattern "$") range-text)]
     (assoc m :new-index pos)))

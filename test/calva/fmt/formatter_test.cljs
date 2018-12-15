@@ -5,12 +5,12 @@
 ;; TODO: Fix this bug (gazonk should be indented twice)
 #_(deftest format-text
     (is (= "  (foo\n   bar\n   baz)\n  gazonk"
-           (:range-text (sut/format-text {:range-text "  (foo   \nbar\n      baz)\ngazonk"})))))
+           (:range-text (sut/format-text {:eol "\n" :range-text "  (foo   \nbar\n      baz)\ngazonk"})))))
 
 
 (deftest format-text-at-range
   (is (= "(foo)\n(defn bar\n  [x]\n  baz)"
-         (:range-text (sut/format-text-at-range {:all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]})))))
+         (:range-text (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]})))))
 
 
 (def all-text "  (foo)
@@ -25,28 +25,28 @@ baz)")
     [x]
 
     baz)"
-         (:range-text (sut/format-text-at-idx {:all-text all-text :idx 11}))))
+         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 11}))))
   (is (= 1
-         (:new-index (sut/format-text-at-idx {:all-text all-text :idx 11}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 11}))))
   (is (= [10 38]
-         (:range (sut/format-text-at-idx {:all-text all-text :idx 11})))))
+         (:range (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 11})))))
 
 
 (deftest new-index
   (is (= 1
-         (:new-index (sut/format-text-at-idx {:all-text all-text :idx 11}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 11}))))
   (is (= 13
-         (:new-index (sut/format-text-at-idx {:all-text all-text :idx 28}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 28}))))
   (is (= 10
-         (:new-index (sut/format-text-at-idx {:all-text all-text :idx 22}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 22}))))
   (is (= 12
-         (:new-index (sut/format-text-at-idx {:all-text all-text :idx 27}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 27}))))
   (is (= 22
-         (:new-index (sut/format-text-at-idx {:all-text all-text :idx 33}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 33}))))
   (is (= 5
-         (:new-index (sut/format-text-at-idx {:all-text "(defn \n  \nfoo)" :idx 6}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(defn \n  \nfoo)" :idx 6}))))
   (is (= 11
-         (:new-index (sut/format-text-at-idx {:all-text "(foo\n (bar)\n )" :idx 11})))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(foo\n (bar)\n )" :idx 11})))))
 
 
 (def head-and-tail-text "(def a 1)
@@ -79,7 +79,8 @@ bar))")
 
 (deftest normalize-indents
   (is (= "(foo)\n  (defn bar\n    [x]\n    baz)"
-         (:range-text (sut/normalize-indents {:all-text "  (foo)\n(defn bar\n[x]\nbaz)"
+         (:range-text (sut/normalize-indents {:eol "\n"
+                                              :all-text "  (foo)\n(defn bar\n[x]\nbaz)"
                                               :range [2 26]
                                               :range-text "(foo)\n(defn bar\n  [x]\n  baz)"})))))
 
@@ -105,45 +106,45 @@ bar))")
 ;; These fail, leading to a horrible behaviour when creating new lines top level
 (deftest new-index-top-level
   (is (= 1
-         (:new-index (sut/format-text-at-idx {:all-text first-top-level-text :idx 1}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text first-top-level-text :idx 1}))))
   (is (= first-top-level-text
-         (:range-text (sut/format-text-at-idx {:all-text first-top-level-text :idx 1}))))
+         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text first-top-level-text :idx 1}))))
   (is (= 32
-         (:new-index (sut/format-text-at-idx {:all-text mid-top-level-text :idx 33}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text mid-top-level-text :idx 33}))))
   (is (= mid-top-level-text
-         (:range-text (sut/format-text-at-idx {:all-text mid-top-level-text :idx 33}))))
+         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text mid-top-level-text :idx 33}))))
   (is (= 32
-         (:new-index (sut/format-text-at-idx {:all-text last-top-level-text :idx 32}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text last-top-level-text :idx 32}))))
   (is (= last-top-level-text
-         (:range-text (sut/format-text-at-idx {:all-text last-top-level-text :idx 32})))))
+         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text last-top-level-text :idx 32})))))
 
 
 (deftest format-text-at-idx-on-type
   (is (= "(bar \n\n )"
-         (:range-text (sut/format-text-at-idx-on-type {:all-text "(bar \n\n)" :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :idx 7}))))
   (is (= "(bar \n \n )"
-         (:range-text (sut/format-text-at-idx-on-type {:all-text "(bar \n \n)" :idx 8}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n \n)" :idx 8}))))
   (is (= "(bar \n \n )"
-         (:range-text (sut/format-text-at-idx-on-type {:all-text "(bar \n\n)" :idx 6}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :idx 6}))))
   (is (= "\"bar \n \n \""
-         (:range-text (sut/format-text-at-idx-on-type {:all-text "\"bar \n \n \"" :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :idx 7}))))
   (is (= "\"bar \n \n \""
-         (:range-text (sut/format-text-at-idx-on-type {:all-text "\"bar \n \n \"" :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :idx 7}))))
   (is (= "'([]\n    [])"
-         (:range-text (sut/format-text-at-idx-on-type {:all-text "  '([]\n[])" :idx 7})))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "  '([]\n[])" :idx 7})))))
 
 
 (deftest new-index-on-type
   (is (= 6
-         (:new-index (sut/format-text-at-idx-on-type {:all-text "(defn \n)" :idx 6}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :idx 6}))))
   (is (= 6
-         (:new-index (sut/format-text-at-idx-on-type {:all-text "(defn \n  )" :idx 6}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  )" :idx 6}))))
   (is (= 6
-         (:new-index (sut/format-text-at-idx-on-type {:all-text "(defn \n  \n  )" :idx 6}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  \n  )" :idx 6}))))
   (is (= 6
-         (:new-index (sut/format-text-at-idx-on-type {:all-text "(defn \n\n  )" :idx 6}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n  )" :idx 6}))))
   (is (= 11
-         (:new-index (sut/format-text-at-idx-on-type {:all-text "(foo\n (bar)\n )" :idx 11})))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(foo\n (bar)\n )" :idx 11})))))
 
 
 (deftest index-for-tail-in-range

@@ -111,10 +111,10 @@
 
 (defn- normalize-indents
   "Normalizes indents based on where the text starts on the first line"
-  [{:keys [range-text] :as m}]
+  [{:keys [range-text eol] :as m}]
   (let [indent-before (apply str (repeat (indent-before-range m) " "))
         lines (clojure.string/split range-text #"\r?\n(?!\s*;)" -1)]
-    (assoc m :range-text (clojure.string/join (str "\n" indent-before) lines))))
+    (assoc m :range-text (clojure.string/join (str eol indent-before) lines))))
 
 
 (defn index-for-tail-in-range
@@ -127,7 +127,7 @@
                          (util/escape-regexp)
                          (clojure.string/replace #"^[ \t]+" "")
                          (clojure.string/replace #"\s+" "\\s*"))
-        tail-pattern (if (and on-type (re-find #"^\n" range-tail))
+        tail-pattern (if (and on-type (re-find #"^\r?\n" range-tail))
                        (str "\n+" tail-pattern)
                        tail-pattern)
         pos (util/re-pos-first (str " {0," leading-space-length "}" tail-pattern "$") range-text)]

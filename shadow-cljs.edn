@@ -1,6 +1,6 @@
 {:dependencies [[pez/cljfmt "0.0.3-SNAPSHOT"]
                 #_[zprint "0.4.11"]
-                [cider/cider-nrepl "0.19.0-SNAPSHOT"]]
+                [cider/cider-nrepl "0.18.0"]]
 
  :source-paths ["src" "test"]
 
@@ -12,7 +12,7 @@
                              calva.js-utils
                              calva.main]
                  :output-dir "packages/lib"
-                 :compiler-options {#_(:optimizations :simple)}} ;; :simple does not work, currently
+                 :compiler-options {}} ;; :optimizations :simple does not work, currently
                 :test
                 {:target    :node-test
                  :output-to "test-out/tests.js"

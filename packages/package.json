@@ -1,6 +1,6 @@
 {
     "name": "@cospaia/calva-lib",
-    "version": "0.0.17",
+    "version": "0.0.18",
     "description": "The Calva Common Library",
     "main": "calva.main.js",
     "files": [

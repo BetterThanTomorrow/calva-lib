@@ -10,9 +10,11 @@
 
 
 (defn format-text
-  [{:keys [range-text config] :as m}]
+  [{:keys [range-text eol config] :as m}]
   (try
-    (let [formatted-text (cljfmt/reformat-string range-text config)]
+    (let [formatted-text (-> range-text
+                             (cljfmt/reformat-string config)
+                             (clojure.string/replace #"\r?\n" eol))]
       (assoc m :range-text formatted-text))
     (catch js/Error e
       (assoc m :error (.-message e)))))
@@ -128,9 +130,9 @@
                          (clojure.string/replace #"^[ \t]+" "")
                          (clojure.string/replace #"\s+" "\\s*"))
         tail-pattern (if (and on-type (re-find #"^\r?\n" range-tail))
-                       (str "[\r\n]+" tail-pattern)
+                       (str "(\\r?\\n)+" tail-pattern)
                        tail-pattern)
-        pos (util/re-pos-first (str " {0," leading-space-length "}" tail-pattern "$") range-text)]
+        pos (util/re-pos-first (str "[ \\t]{0," leading-space-length "}" tail-pattern "$") range-text)]
     (assoc m :new-index pos)))
 
 

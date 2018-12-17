@@ -58,7 +58,7 @@
 (defn message [^js conn msg callback]
   (let [id (str (random-uuid))]
     (swap! *messages assoc id {:callback callback
-                              :results []})
+                               :results []})
     (.on conn "data" (fn [chunk]
                        (when-let [decoded-messages (let [empty-buffer (buf/Buffer.from "")
                                                          buffer       (buf/Buffer.concat (jsify [empty-buffer chunk]))]
@@ -66,7 +66,8 @@
                                                        (js/console.warn "EMPTY BUFFER"))
                                                      (not-empty (decode [buffer])))]
                          (println (pr-str decoded-messages))
-                         (map (fn [e] (swap! *messages assoc e "foo")) [1 2])
+                         (map (fn [k] (swap! *messages assoc k "foo")) [:a :b])
+                         (map (fn [] (println "FOO")) [1 2 3])
                          (swap! *messages assoc 1 :bar)
                          (map (fn [decoded]
                                 (let [d-id (:id decoded)
@@ -79,6 +80,7 @@
                                     (let [results (get-in @*messages [d-id :results])]
                                       (println "results" results)
                                       (println "cb" cb)
+                                      (swap! *messages dissoc d-id)
                                       (cb (jsify results))))))
                               decoded-messages)
                          (println (pr-str @*messages)))))

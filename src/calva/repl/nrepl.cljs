@@ -3,7 +3,8 @@
    ["net" :as net]
    ["bencoder" :as bencoder]
    ["buffer" :as buf]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [calva.js-utils :refer [cljify jsify]]))
 
 
 (def CONTINUATION_ERROR_MESSAGE
@@ -52,16 +53,44 @@
              (js/console.error "FAILED TO DECODE" exception-message))))))
    buffers))
 
+(def *messages (atom {}))
 
 (defn message [^js conn msg callback]
-  (let [*state (atom [])]
+  (let [id (str (random-uuid))]
+    (swap! *messages assoc id {:callback callback
+                              :results []})
     (.on conn "data" (fn [chunk]
                        (when-let [decoded-messages (let [empty-buffer (buf/Buffer.from "")
-                                                         buffer       (buf/Buffer.concat (clj->js [empty-buffer chunk]))]
+                                                         buffer       (buf/Buffer.concat (jsify [empty-buffer chunk]))]
                                                      (when (= 0 (.-length buffer))
                                                        (js/console.warn "EMPTY BUFFER"))
                                                      (not-empty (decode [buffer])))]
-                         (swap! *state into decoded-messages)
-                         (when (some #(= "done" %) (mapcat :status decoded-messages))
-                           (callback (clj->js @*state))))))
-    (.write conn (bencoder/encode (clj->js msg)) "binary")))
+                         (println (pr-str decoded-messages))
+                         (map (fn [e] (swap! *messages assoc e "foo")) [1 2])
+                         (swap! *messages assoc 1 :bar)
+                         (map (fn [decoded]
+                                (let [d-id (:id decoded)
+                                      cb (get-in @*messages [d-id :callback])
+                                      results (get-in @*messages [d-id :results])]
+                                  (println "d-id" d-id)
+                                  (println "*messages" @*messages)
+                                  (swap! *messages assoc-in [d-id :results] (conj results decoded))
+                                  (when (some #(= "done" %) (mapcat :status decoded-messages))
+                                    (let [results (get-in @*messages [d-id :results])]
+                                      (println "results" results)
+                                      (println "cb" cb)
+                                      (cb (jsify results))))))
+                              decoded-messages)
+                         (println (pr-str @*messages)))))
+    (.write conn (bencoder/encode (jsify (assoc msg :id id))) "binary")))
+
+
+(comment
+  (def messages (atom {}))
+  (let [dm '({:id "a74d6afa-925b-4801-9ab1-7d5879e07802", :new-session "357076d7-fdbb-4d42-8ad2-4284c4980885", :session "d59020f4-2220-477b-9b29-96cbbf653005", :status ["done"]})]
+    (map (fn [decoded]
+           (let [d-id (:id decoded)
+                 cb (get-in @messages [d-id :callback])
+                 results (get-in @messages [d-id :results])]
+             (swap! messages assoc-in [d-id :results] (conj results decoded))))
+         dm)))

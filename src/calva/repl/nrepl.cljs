@@ -2,7 +2,7 @@
   (:require
    ["net" :as net]
    ["bencoder" :as bencoder]
-   ["buffer" :refer [Buffer]]
+   ["buffer" :as buf]
    [clojure.string :as str]))
 
 
@@ -46,7 +46,7 @@
              ;; but this time passing two buffers
              (let [recoverable-content (subs exception-message (count CONTINUATION_ERROR_MESSAGE))
                    recoverable-buffer  (.slice buffer 0 (- (.-length buffer) (count recoverable-content)))]
-               (decode [recoverable-buffer (Buffer.from recoverable-content)]))
+               (decode [recoverable-buffer (buf/Buffer.from recoverable-content)]))
 
              ;; can't (don't know) handle other errors
              (js/console.error "FAILED TO DECODE" exception-message))))))
@@ -56,8 +56,8 @@
 (defn message [^js conn msg callback]
   (let [*state (atom [])]
     (.on conn "data" (fn [chunk]
-                       (when-let [decoded-messages (let [empty-buffer (Buffer.from "")
-                                                         buffer       (Buffer.concat (clj->js [empty-buffer chunk]))]
+                       (when-let [decoded-messages (let [empty-buffer (buf/Buffer.from "")
+                                                         buffer       (buf/Buffer.concat (clj->js [empty-buffer chunk]))]
                                                      (when (= 0 (.-length buffer))
                                                        (js/console.warn "EMPTY BUFFER"))
                                                      (not-empty (decode [buffer])))]

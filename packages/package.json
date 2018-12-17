@@ -1,6 +1,6 @@
 {
     "name": "@cospaia/calva-lib",
-    "version": "0.0.19",
+    "version": "0.0.20-SNAPSHOT",
     "description": "The Calva Common Library",
     "main": "calva.main.js",
     "files": [
@@ -21,6 +21,7 @@
     "dependencies": {
         "paredit.js": "^0.3.4",
         "parinfer": "^3.12.0",
-        "bencoder": "^0.0.5"
+        "bencoder": "^0.0.5",
+        "buffer": "^5.2.1"
     }
 }

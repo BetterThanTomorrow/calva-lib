@@ -53,37 +53,31 @@
              (js/console.error "FAILED TO DECODE" exception-message))))))
    buffers))
 
-(def *messages (atom {}))
+(def *results (atom {}))
 
 (defn message [^js conn msg callback]
   (let [id (str (random-uuid))]
-    (swap! *messages assoc id {:callback callback
-                               :results []})
+    (swap! *results assoc id {:callback callback
+                              :msg msg
+                              :results []})
     (.on conn "data" (fn [chunk]
                        (when-let [decoded-messages (let [empty-buffer (buf/Buffer.from "")
                                                          buffer       (buf/Buffer.concat (jsify [empty-buffer chunk]))]
                                                      (when (= 0 (.-length buffer))
                                                        (js/console.warn "EMPTY BUFFER"))
                                                      (not-empty (decode [buffer])))]
-                         (println (pr-str decoded-messages))
-                         (map (fn [k] (swap! *messages assoc k "foo")) [:a :b])
-                         (map (fn [] (println "FOO")) [1 2 3])
-                         (swap! *messages assoc 1 :bar)
-                         (map (fn [decoded]
-                                (let [d-id (:id decoded)
-                                      cb (get-in @*messages [d-id :callback])
-                                      results (get-in @*messages [d-id :results])]
-                                  (println "d-id" d-id)
-                                  (println "*messages" @*messages)
-                                  (swap! *messages assoc-in [d-id :results] (conj results decoded))
-                                  (when (some #(= "done" %) (mapcat :status decoded-messages))
-                                    (let [results (get-in @*messages [d-id :results])]
-                                      (println "results" results)
-                                      (println "cb" cb)
-                                      (swap! *messages dissoc d-id)
-                                      (cb (jsify results))))))
-                              decoded-messages)
-                         (println (pr-str @*messages)))))
+                         (dorun (map (fn [decoded]
+                                       (let [d-id (:id decoded)
+                                             cb (get-in @*results [d-id :callback])
+                                             results (get-in @*results [d-id :results])]
+                                         (swap! *results assoc-in [d-id :results] (conj results decoded))
+                                         (when (some #{"done"} (:status decoded))
+                                           (let [results (get-in @*results [d-id :results])]
+                                             (println (pr-str "*results cb" @*results))
+                                             (swap! *results dissoc d-id)
+                                             (cb (jsify results))))))
+                                     decoded-messages))
+                         (println (pr-str "*results pending" @*results)))))
     (.write conn (bencoder/encode (jsify (assoc msg :id id))) "binary")))
 
 

@@ -2,6 +2,7 @@
   (:require
    ["net" :as net]
    ["bencoder" :as bencoder]
+   [clojure-party-repl.bencode :as bencode]
    ["buffer" :as buf]
    [clojure.string :as str]
    [calva.js-utils :refer [cljify jsify]]))
@@ -61,32 +62,17 @@
                               :msg msg
                               :results []})
     (.on conn "data" (fn [chunk]
-                       (when-let [decoded-messages (let [empty-buffer (buf/Buffer.from "")
-                                                         buffer       (buf/Buffer.concat (jsify [empty-buffer chunk]))]
-                                                     (when (= 0 (.-length buffer))
-                                                       (js/console.warn "EMPTY BUFFER"))
-                                                     (not-empty (decode [buffer])))]
+                       (when-let [decoded-messages (bencode/decode chunk)]
                          (dorun (map (fn [decoded]
                                        (let [d-id (:id decoded)
                                              cb (get-in @*results [d-id :callback])
                                              results (get-in @*results [d-id :results])]
                                          (swap! *results assoc-in [d-id :results] (conj results decoded))
-                                         (when (some #{"done"} (:status decoded))
-                                           (let [results (get-in @*results [d-id :results])]
-                                             (println (pr-str "*results cb" @*results))
-                                             (swap! *results dissoc d-id)
-                                             (cb (jsify results))))))
+                                         #_(when (some #{"done"} (:status decoded)))
+                                         (let [results (get-in @*results [d-id :results])]
+                                           (println (pr-str "*results cb" @*results))
+                                           (swap! *results dissoc d-id)
+                                           (cb (jsify results)))))
                                      decoded-messages))
                          (println (pr-str "*results pending" @*results)))))
-    (.write conn (bencoder/encode (jsify (assoc msg :id id))) "binary")))
-
-
-(comment
-  (def messages (atom {}))
-  (let [dm '({:id "a74d6afa-925b-4801-9ab1-7d5879e07802", :new-session "357076d7-fdbb-4d42-8ad2-4284c4980885", :session "d59020f4-2220-477b-9b29-96cbbf653005", :status ["done"]})]
-    (map (fn [decoded]
-           (let [d-id (:id decoded)
-                 cb (get-in @messages [d-id :callback])
-                 results (get-in @messages [d-id :results])]
-             (swap! messages assoc-in [d-id :results] (conj results decoded))))
-         dm)))
+    (.write conn (bencode/encode (jsify (assoc msg :id id))))))

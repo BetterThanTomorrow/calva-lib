@@ -67,12 +67,10 @@
                                                        (js/console.warn "EMPTY BUFFER"))
                                                      (not-empty (decode [buffer])))]
                          (dorun (map (fn [decoded]
-                                       (let [d-id (:id decoded)
-                                             cb (get-in @*results [d-id :callback])
-                                             results (get-in @*results [d-id :results])]
-                                         (swap! *results assoc-in [d-id :results] (conj results decoded))
-                                         (when (some #{"done"} (:status decoded))
-                                           (let [results (get-in @*results [d-id :results])]
+                                       (when-let [d-id (:id decoded)]
+                                         (let [cb (get-in @*results [d-id :callback])
+                                               results (get-in (swap! *results update-in [d-id :results] (fnil conj []) decoded) [d-id :results])]
+                                           (when (some #{"done"} (:status decoded))
                                              (println (pr-str "*results cb" @*results))
                                              (swap! *results dissoc d-id)
                                              (cb (jsify results))))))

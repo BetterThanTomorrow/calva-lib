@@ -1,7 +1,6 @@
 {:dependencies [[pez/cljfmt "0.0.3-SNAPSHOT"]
                 #_[zprint "0.4.11"]
-                [cider/cider-nrepl "0.19.0-SNAPSHOT"]
-                [binaryage/oops "0.6.4"]]
+                [cider/cider-nrepl "0.19.0-SNAPSHOT"]]
 
  :source-paths ["src" "test"]
 

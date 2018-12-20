@@ -12,9 +12,6 @@
     "devDependencies": {
         "shadow-cljs": "^2.7.8"
     },
-    "dependencies": {
-        "paredit.js": "^0.3.4",
-        "parinfer": "^3.12.0"
-    },
+    "dependencies": {},
     "license": "MIT"
 }

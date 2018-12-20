@@ -1,101 +1,62 @@
 (ns calva.repl.client
   (:require
-   ["net" :as net]
-   [clojure-party-repl.bencode :as bencode]
+   [clojure.string :as string]
+   ["bencoder" :as bencoder]
+   ["buffer" :as buf]
+   [talky.socket-client :as talky]
    [calva.js-utils :refer [cljify jsify]]))
 
-
-(defn make-socket-client
-  [{:socket/keys [host port config on-connect on-close on-data]
-    :or {config
-         {:socket/encoder
-          (fn [data]
-            ;; See https://nodejs.org/api/net.html#net_socket_write_data_encoding_callback
-            data)
-
-          ;; You can also set the encoding.
-          ;; See https://nodejs.org/api/net.html#net_socket_setencoding_encoding
-          ;; :socket/encoding "utf8"
-
-          :socket/decoder
-          (fn [buffer-or-string]
-            ;; See https://nodejs.org/api/net.html#net_event_data
-            buffer-or-string)}
-
-         on-connect
-         (fn [socket]
-           ;; Do stuff and returns nil.
-           nil)
-
-         on-close
-         (fn [socket error?]
-           ;; Do stuff and returns nil.
-           nil)
-
-         on-data
-         (fn [socket buffer-or-string]
-           ;; Do stuff and returns nil.
-           nil)}
-    :as socket}]
-  (let [net-socket (doto (net/connect #js {:host host :port port})
-                     (.once "connect"
-                            (fn []
-                              (on-connect socket)))
-                     (.once "close"
-                            (fn [error?]
-                              (on-close socket error?)))
-                     (.on "data"
-                          (fn [buffer]
-                            (let [{:socket/keys [decoder]} config]
-                              (on-data socket (decoder buffer))))))
-
-        net-socket (if-let [encoding (:socket/encoding config)]
-                     (.setEncoding net-socket encoding)
-                     net-socket)]
-    {:socket.api/write!
-     (fn write [data]
-       (let [{:socket/keys [encoder]} config]
-         (.write ^js net-socket (encoder data))))
-
-     :socket.api/end!
-     (fn []
-       (.end ^js net-socket))
-
-     :socket.api/connected?
-     (fn []
-       (not (.-pending ^js net-socket)))}))
+(def ^:private CONTINUATION_ERROR_MESSAGE
+  "Unexpected continuation: \"")
 
 
-(defn make-nrepl-client
+(defn- decode [buffers]
+  (mapcat
+   (fn [^js buffer]
+     (try
+       (-> (bencoder/decode buffer)
+           (cljify)
+           (vector))
+       (catch js/Error e
+         (let [exception-message (.-message e)]
+           (if (string/includes? exception-message CONTINUATION_ERROR_MESSAGE)
+             (let [recoverable-content (subs exception-message (count CONTINUATION_ERROR_MESSAGE))
+                   recoverable-buffer  (.slice buffer 0 (- (.-length buffer) (count recoverable-content)))]
+               (decode [recoverable-buffer (buf/Buffer.from recoverable-content)]))
+             (js/console.error "FAILED TO DECODE" exception-message))))))
+   buffers))
+
+
+(defn- make-nrepl-client
   [{:keys [host port on-connect]}]
   (let [*results (atom {})
 
         config
-        {:socket/encoding "binary"
+        {:socket/encoding "utf8"
 
          :socket/decoder
-         (fn [buffer-or-string]
-           (bencode/decode buffer-or-string))
+         (fn [chunk]
+           (let [buffer (buf/Buffer.from chunk)]
+             (when (= 0 (.-length buffer))
+               (js/console.warn "EMPTY BUFFER"))
+             (not-empty (decode [buffer]))))
+           ;;(bencode/decode chunk))
 
          :socket/encoder
          (fn [data]
-           (bencode/encode (jsify data)))}
-
-        ; on-connect
-        ; (fn [_]
-        ;   (js/console.log "Connected."))
+           (bencoder/encode (jsify data)))}
 
         on-close
         (fn [_ error?]
           (js/console.log "Disconnected."))
 
-        ;; TODO
         on-data
         (fn [_ decoded-messages]
           (dorun (map (fn [decoded]
                         (when-let [d-id (:id decoded)]
                           (let [cb (get-in @*results [d-id :callback])
-                                results (get-in (swap! *results update-in [d-id :results] (fnil conj []) decoded) [d-id :results])]
+                                results (get-in (swap! *results update-in [d-id :results]
+                                                       (fnil conj []) decoded) [d-id :results])]
                             (when (some #{"done"} (:status decoded))
                               (println (pr-str "*results cb" @*results))
                               (swap! *results dissoc d-id)
@@ -104,7 +65,7 @@
           (println (pr-str "*results pending" @*results)))
 
         {:socket.api/keys [write! connected?]}
-        (make-socket-client
+        (talky/make-socket-client
          #:socket {:host host
                    :port (js/parseInt port)
                    :config config
@@ -114,11 +75,12 @@
     {:nrepl.api/send!
      (fn [message callback]
        (when connected?
-         (let [id (str (random-uuid))
-               message (assoc message :id id)]
-           (swap! *results assoc id {:nrepl.message/id id
-                                     :nrepl.message/callback callback})
-           (write! message)
+         (let [id (str (random-uuid))]
+           (swap! *results assoc id {:id id
+                                     :callback callback
+                                     :message :message
+                                     :results []})
+           (write! (assoc message :id id))
            id)))}))
 
 

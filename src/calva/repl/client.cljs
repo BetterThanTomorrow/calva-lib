@@ -54,12 +54,12 @@
         (fn [_ decoded-messages]
           (mapv (fn [decoded]
                   (when-let [d-id (:id decoded)]
-                    (let [cb (get-in @*results [d-id :callback])
-                          results (get-in (swap! *results update-in [d-id :results]
-                                                 (fnil conj []) decoded) [d-id :results])]
-                      (when (some #{"done"} (:status decoded))
-                        (swap! *results dissoc d-id)
-                        (cb (jsify results))))))
+                    (when-let [cb (get-in @*results [d-id :callback])]
+                      (let [results (get-in (swap! *results update-in [d-id :results]
+                                                   (fnil conj []) decoded) [d-id :results])]
+                        (when (some #{"done"} (:status decoded))
+                          (swap! *results dissoc d-id)
+                          (cb (jsify results)))))))
                 decoded-messages)
           (println (pr-str "*results pending" @*results)))
 

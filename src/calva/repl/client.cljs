@@ -87,4 +87,6 @@
 (defn ^:export create
   [^js options]
   (let [client (make-nrepl-client (cljify options))]
-    (jsify {:send (:nrepl.api/send! client)})))
+    (jsify {:send (:nrepl.api/send! client)
+            :end (:socket.api/end! client)
+            :connected (:socket.api/connected? client)})))

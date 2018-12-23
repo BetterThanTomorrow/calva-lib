@@ -33,10 +33,10 @@
 
 (defn update-results [results id decoded done?]
   (let [r (-> results
-              (update-in [id :results] (fnil conj []) decoded)
+              (update-in [id :results] conj decoded)
               (get-in [id :results]))]
     (cond-> r
-     done? (dissoc id))))
+      done? (dissoc id))))
 
 (defn do-receive [results {:keys [id status] :as decoded}]
   (when id

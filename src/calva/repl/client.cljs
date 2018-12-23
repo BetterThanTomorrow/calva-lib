@@ -31,20 +31,18 @@
          (map decode)
          not-empty)))
 
-(defn update-results [results id decoded done?]
-  (let [r (-> results
-              (update-in [id :results] conj decoded)
-              (get-in [id :results]))]
-    (cond-> r
-      done? (dissoc id))))
+(defn update-results [results {:keys [id status] :as decoded}]
+  (let [done? (some #{"done"} status)]
+    (-> results
+      (update-in [id :results] conj decoded)
+      (assoc-in [id :done?] done?))))
 
-(defn do-receive [results {:keys [id status] :as decoded}]
-  (when (and id (get @results id nil))
-    (let [cb (get-in @results [id :callback])
-          done? (some #{"done"} status)
-          results (swap! results update-results id decoded done?)]
-      (when done?
-        (cb (jsify results))))))
+(defn do-receive [results {:keys [id] :as decoded}]
+  (when (and id (get @results id))
+    (let [new-results (swap! results update-results decoded)]
+      (when (:done? new-results)
+        (let [cb (get-in new-results [id :callbacy])]
+          (cb (jsify new-results)))))))
 
 (defn handle-data [*results _ decoded-messages]
   (doseq [msg decoded-messages]

@@ -8,9 +8,9 @@
                          :results []}}
           expected {"id" {:id "id"
                           :results ["lol"]}}]
-      (is (= expected (sut/update-results results "id" "lol" false)))))
+      (is (= expected (sut/update-results results {:id "id" :status "lol"} )))))
   (testing "done"
     (let [results {"id" {:id "id"
                          :results []}}
           expected {}]
-      (is (= expected (sut/update-results results "id" "lol" true))))))
+      (is (= expected (sut/update-results results {:id "id" :status "done"}))))))

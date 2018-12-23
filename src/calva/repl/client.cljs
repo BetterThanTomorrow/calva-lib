@@ -51,15 +51,14 @@
     (do-receive *results msg))
   (println (pr-str "*results pending" @*results)))
 
-(defn send! [write-fn! *results connected? message callback]
-  (when connected?
-    (let [id (str (random-uuid))]
-      (swap! *results assoc id {:id id
-                                :callback callback
-                                :message message
-                                :results []})
-      (write-fn! (assoc message :id id))
-      id)))
+(defn send! [write-fn! *results message callback]
+  (let [id (str (random-uuid))]
+    (swap! *results assoc id {:id id
+                              :callback callback
+                              :message message
+                              :results []})
+    (write-fn! (assoc message :id id))
+    id))
 
 (def client-config {:socket/encoding "utf8"
                     :socket/decoder decoder
@@ -78,13 +77,14 @@
                                                                :on-connect on-connect
                                                                :on-close on-close
                                                                :on-data on-data})]
-        {:send (partial send! write! *results connected?)
-         :end end!
-         :connected connected?}))
+    (when connected?
+      {:send (partial send! write! *results)
+       :end end!
+       :connected connected?})))
 
 (defn ^:export create
   [^js options]
-  (-> options
-      cljify
-      make-nrepl-client
-      jsify))
+  (some-> options
+          cljify
+          make-nrepl-client
+          jsify))

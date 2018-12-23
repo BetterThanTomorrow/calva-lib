@@ -2,12 +2,6 @@
   (:require [cljs.test :include-macros true :refer [deftest is]]
             [calva.fmt.formatter :as sut]))
 
-;; TODO: Fix this bug (gazonk should be indented twice)
-#_(deftest format-text
-    (is (= "  (foo\n   bar\n   baz)\n  gazonk"
-           (:range-text (sut/format-text {:eol "\n" :range-text "  (foo   \nbar\n      baz)\ngazonk"})))))
-
-
 (deftest format-text-at-range
   (is (= "(foo)\n(defn bar\n  [x]\n  baz)"
          (:range-text (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]})))))

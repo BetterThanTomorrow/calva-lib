@@ -40,11 +40,11 @@
 
 (defn do-receive [results {:keys [id status] :as decoded}]
   (when id
-    (when-let [cb (get-in @results [id :callback])]
-      (let [done? (some #{"done"} status)
-             results (swap! results update-results id decoded done?)]
-        (when done?
-          (cb (jsify results)))))))
+    (let [cb (get-in @results [id :callback])
+          done? (some #{"done"} status)
+          results (swap! results update-results id decoded done?)]
+      (when done?
+        (cb (jsify results))))))
 
 (defn handle-data [*results _ decoded-messages]
   (doseq [msg decoded-messages]

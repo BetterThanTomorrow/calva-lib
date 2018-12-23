@@ -39,7 +39,7 @@
       done? (dissoc id))))
 
 (defn do-receive [results {:keys [id status] :as decoded}]
-  (when id
+  (when (and id (get @results id nil))
     (let [cb (get-in @results [id :callback])
           done? (some #{"done"} status)
           results (swap! results update-results id decoded done?)]

@@ -31,30 +31,37 @@
          (map decode)
          not-empty)))
 
-(defn update-results [results {:keys [id status] :as decoded}]
+(defn update-state [*state {:keys [id status] :as decoded}]
+  (println "update-state: " (pr-str *state) " status: " (pr-str status))
   (let [done? (some #{"done"} status)]
-    (-> results
-      (update-in [id :results] conj decoded)
-      (assoc-in [id :done?] done?))))
+    (println "done? " done?)
+    (-> *state
+        (update-in [id :results] (fnil conj []) decoded)
+        (assoc-in [id :done?] done?))))
 
-(defn do-receive [results {:keys [id] :as decoded}]
-  (when (and id (get @results id))
-    (let [new-results (swap! results update-results decoded)]
-      (when (:done? new-results)
-        (let [cb (get-in new-results [id :callbacy])]
-          (cb (jsify new-results)))))))
+(defn do-receive [*state [decoded]]
+  (println "do-receive, @*state: " (pr-str @*state) "decoded: " (pr-str decoded))
+  (when-let [{:keys [id]} decoded]
+    (when (get @*state id)
+      (println "do-receive, id: " id " decoded: " decoded)
+      (let [new-state (swap! *state update-state decoded)]
+        (println "new-state: " (pr-str new-state))
+        (when (:done? (get new-state id))
+          (swap! *state dissoc id)
+          (let [cb (get-in new-state [id :callback])
+                results (get-in new-state [id :results])]
+            (cb (jsify results))))))))
 
-(defn handle-data [*results _ decoded-messages]
+(defn handle-state [*state _ decoded-messages]
   (doseq [msg decoded-messages]
-    (do-receive *results msg))
-  (println (pr-str "*results pending" @*results)))
+    (do-receive *state msg))
+  (println (pr-str "*state pending:" @*state)))
 
-(defn send! [write-fn! *results message callback]
+(defn send! [write-fn! *state message callback]
   (let [id (str (random-uuid))]
-    (swap! *results assoc id {:id id
-                              :callback callback
-                              :message message
-                              :results []})
+    (swap! *state assoc id {:callback callback
+                            :message message
+                            :results []})
     (write-fn! (assoc message :id id))
     id))
 
@@ -64,10 +71,9 @@
 
 (defn- make-nrepl-client
   [{:keys [host port on-connect]}]
-  (let [*results (atom {})
+  (let [*state (atom {})
         on-close (fn [_ error?] (js/console.log "Disconnected."))
-
-        on-data (partial handle-data *results)
+        on-data (partial handle-state *state)
         {:socket.api/keys [write! connected? end!]} (talky/make-socket-client
                                                      #:socket {:host host
                                                                :port (js/parseInt port)
@@ -76,7 +82,7 @@
                                                                :on-close on-close
                                                                :on-data on-data})]
     (when connected?
-      {:send (partial send! write! *results)
+      {:send (partial send! write! *state)
        :end end!
        :connected connected?})))
 

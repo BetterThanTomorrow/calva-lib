@@ -2,15 +2,15 @@
   (:require [cljs.test :include-macros true :refer [deftest is testing]]
             [calva.repl.client :as sut]))
 
-(deftest update-results-test
+(deftest update-state-test
   (testing "not done"
-    (let [results {"id" {:id "id"
-                         :results []}}
+    (let [state {"id" {:id "id"
+                       :results []}}
           expected {"id" {:id "id"
                           :results ["lol"]}}]
-      (is (= expected (sut/update-results results {:id "id" :status "lol"} )))))
+      (is (= expected (sut/update-state state {:id "id" :status "lol"})))))
   (testing "done"
-    (let [results {"id" {:id "id"
-                         :results []}}
+    (let [state {"id" {:id "id"
+                       :results []}}
           expected {}]
-      (is (= expected (sut/update-results results {:id "id" :status "done"}))))))
+      (is (= expected (sut/update-state state {:id "id" :status "done"}))))))

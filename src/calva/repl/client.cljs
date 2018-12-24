@@ -28,7 +28,7 @@
 
 
 (defn- make-nrepl-client
-  [{:keys [host port on-connect]}]
+  [{:keys [host port on-connect on-close]}]
   (let [*results (atom {})
 
         config
@@ -40,15 +40,10 @@
              (when (= 0 (.-length buffer))
                (js/console.warn "EMPTY BUFFER"))
              (not-empty (decode [buffer]))))
-           ;;(bencode/decode chunk))
 
          :socket/encoder
          (fn [data]
            (bencoder/encode (jsify data)))}
-
-        on-close
-        (fn [_ error?]
-          (js/console.log "Disconnected."))
 
         on-data
         (fn [_ decoded-messages]
@@ -61,7 +56,7 @@
                           (swap! *results dissoc d-id)
                           (cb (jsify results)))))))
                 decoded-messages)
-          (println (pr-str "*results pending" @*results)))
+          #_(println (pr-str "*results pending" @*results)))
 
         {:socket.api/keys [write! connected? end!]}
         (talky/make-socket-client
